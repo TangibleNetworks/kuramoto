@@ -1,4 +1,4 @@
-// Kuramoto.ino - 19/05/2014
+// Kuramoto.ino - 10/07/2014
 // Tangible Networks
 // Lewis, Chris and Espen
 //
@@ -18,6 +18,8 @@
 // Worth noting that with '-k' you get phase synchronisation, with '+k' you get phase locking!
 //
 // New implementation for TN-04, using library.
+//
+// 10/7/2014  Changed k to be in [-1,1], same as neuron model.  Defaults to 0.
 
 #include <math.h>
 #include <TN.h>
@@ -30,7 +32,7 @@ double theta = 0.0;
 double theta_old;
 double omegas[] = {1.0, 2.0}; // range of omega.
 double omega = 0.0;
-double k[] = {0.0, 1.0}; // this defines the range of k (coupling strength)
+double k[] = {-1.0, 1.0}; // this defines the range of k (coupling strength)
 double thisK;
 
 
@@ -39,7 +41,9 @@ double thisK;
 double ins[3] = {0.0,0.0,0.0};
 double synchronisation = 0;
 
-void setup () {}
+void setup () {
+  Serial.begin(115200);
+}
 
 
 void loop() {
@@ -51,7 +55,7 @@ void loop() {
   theta += omega*dt;
   
   if (Tn.masterConnected()) thisK = k[0] + (k[1] - k[0])*Tn.masterRead();
-  else thisK = k[0] + 0.5*(k[0] + k[1]);
+  else thisK = 0.5*(k[0] + k[1]);
   // Loop over the inputs.  Ignore them if they're not connected.
   for (int i=0; i<3; i++) {
     if (Tn.isConnected(i+1)) {
@@ -95,6 +99,6 @@ void loop() {
   // Small delay between iterations.  We cheat a bit, this is not
   // the same as dt so we can vary this to change the speed of the 
   // simulation.
+  Tn.printState();
   delay(10);
 }
-
